@@ -25,4 +25,5 @@ export interface Column {
 
   // MySQL only
   collation?: string | null;
+  enum_values?: string[] | null;
 }
