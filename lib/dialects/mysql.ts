@@ -11,6 +11,7 @@ type RawTable = {
   TABLE_COMMENT: string | null;
   ENGINE: string;
   TABLE_COLLATION: string;
+  TABLE_CHARSET: string;
 };
 
 type RawColumn = {
@@ -105,9 +106,15 @@ export default class MySQL implements SchemaInspector {
         'ENGINE',
         'TABLE_SCHEMA',
         'TABLE_COLLATION',
-        'TABLE_COMMENT'
+        'TABLE_COMMENT',
+        'CHARACTER_SET_NAME as TABLE_CHARSET'
       )
       .from('information_schema.tables')
+      .leftJoin(
+        'information_schema.collation_character_set_applicability',
+        'tables.table_collation',
+        'collation_character_set_applicability.collation_name'
+      )
       .where({
         table_schema: this.knex.client.database(),
         table_type: 'BASE TABLE',
@@ -123,6 +130,7 @@ export default class MySQL implements SchemaInspector {
         schema: rawTable.TABLE_SCHEMA,
         comment: rawTable.TABLE_COMMENT,
         collation: rawTable.TABLE_COLLATION,
+        charset: rawTable.TABLE_CHARSET,
         engine: rawTable.ENGINE,
       } as T extends string ? Table : Table[];
     }
@@ -135,6 +143,7 @@ export default class MySQL implements SchemaInspector {
         schema: rawTable.TABLE_SCHEMA,
         comment: rawTable.TABLE_COMMENT,
         collation: rawTable.TABLE_COLLATION,
+        charset: rawTable.TABLE_CHARSET,
         engine: rawTable.ENGINE,
       };
     }) as T extends string ? Table : Table[];
